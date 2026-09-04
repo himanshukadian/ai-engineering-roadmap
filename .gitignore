@@ -2,3 +2,6 @@
 __pycache__/
 *.pyc
 .pytest_cache/
+
+# model checkpoints (trained in Colab, stored in Google Drive)
+*.pt
