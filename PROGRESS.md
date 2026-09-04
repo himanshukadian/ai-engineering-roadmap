@@ -29,7 +29,7 @@
 
 ## Experiments
 
-(none yet)
+- `experiments/ppo_flappy_bird.ipynb` — PPO agent on FlappyBird-v0, 150k timesteps, reward from -7.6 to ~17. Environment: action_space=Discrete(2), observation_space=Box(-1,1,(12,))
 
 ## Flagship Projects
 
