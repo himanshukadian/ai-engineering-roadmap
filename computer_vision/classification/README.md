@@ -2,6 +2,12 @@
 
 End-to-end deepfake image detection: fine-tuned ResNet50, wrapped in our own Streamlit app.
 
+**Try it live: https://deepfakefacedetect.streamlit.app/**
+
+## Live app
+
+Deployed on Streamlit Community Cloud. The deployed app serves the v2 multi-generator checkpoint.
+
 Two checkpoint generations:
 - **v1** — trained on the 140k Real and Fake Faces dataset (FFHQ vs StyleGAN).
 - **v2** — v1 fine-tuned with multi-generator data (Defactify diffusion models + DF40 face fakes), fixing a cross-generator failure discovered in real-world testing.
