@@ -12,7 +12,13 @@
 - (none yet)
 
 ### Machine Learning
-- (none yet)
+- PPO (Proximal Policy Optimization): value loss, policy loss with clipping, entropy loss
+- Neural networks as stacked logistic regressions
+- Gradient descent in RL context (reward instead of labels)
+- Training instability diagnosis via clip_fraction and approx_kl
+- target_kl as early-stopping mechanism for policy updates
+- explained_variance as RL equivalent of R-squared
+- Statistical evaluation: sample size effect, coefficient of variation, root cause analysis
 
 ### Deep Learning
 - (none yet)
@@ -29,7 +35,7 @@
 
 ## Experiments
 
-- `experiments/ppo_flappy_bird.ipynb` — PPO agent on FlappyBird-v0, 150k timesteps, reward from -7.6 to ~17. Environment: action_space=Discrete(2), observation_space=Box(-1,1,(12,))
+- `experiments/ppo_flappy_bird.ipynb` — PPO agent on FlappyBird-v0, 150k timesteps, reward from -7.6 to ~16. Environment: action_space=Discrete(2), observation_space=Box(0,1,(180,)). Diagnosed policy collapse, applied target_kl fix.
 
 ## Flagship Projects
 
@@ -49,6 +55,6 @@ To be identified as work begins.
 
 ## Next Actions
 
-1. First learning objective: linear algebra — vectors and matrices
-2. First implementation task: implement dot product, matrix multiplication, transpose from scratch
-3. First commit: linear algebra exercise
+1. Retrain PPO with target_kl=0.05 and total_timesteps=800000
+2. First learning objective: linear algebra — vectors and matrices
+3. First implementation task: implement dot product, matrix multiplication, transpose from scratch
