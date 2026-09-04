@@ -1,3 +1,6 @@
+import os
+import urllib.request
+
 import torch
 import torch.nn as nn
 from torchvision import transforms, models
@@ -5,11 +8,26 @@ import streamlit as st
 from PIL import Image
 
 CHECKPOINT_PATH = "deepfake_resnet50_v2.pt"
+FALLBACK_PATH = "deepfake_resnet50_v1.pt"
+
+CHECKPOINT_URLS = {
+    CHECKPOINT_PATH: "https://github.com/himanshukadian/ai-engineering-roadmap/releases/download/v1.0.0/deepfake_resnet50_v2.pt",
+    FALLBACK_PATH: "https://github.com/himanshukadian/ai-engineering-roadmap/releases/download/v1.0.0/deepfake_resnet50_v1.pt",
+}
 
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
 IMAGENET_STD = [0.229, 0.224, 0.225]
 
 CLASS_NAMES = ["real", "fake"]
+
+
+def ensure_checkpoint(path):
+    if os.path.exists(path):
+        return path
+    st.info(f"Downloading {path} (~90 MB) ...")
+    url = CHECKPOINT_URLS[path]
+    urllib.request.urlretrieve(url, path)
+    return path
 
 
 @st.cache_resource
@@ -43,14 +61,13 @@ st.title("Deepfake Face Detector")
 st.caption("ResNet50 fine-tuned on real/fake faces (multi-generator: StyleGAN + DF40-40 techniques)")
 
 try:
-    model, device = load_model(CHECKPOINT_PATH)
-except FileNotFoundError:
-    fallback = "deepfake_resnet50_v1.pt"
+    model, device = load_model(ensure_checkpoint(CHECKPOINT_PATH))
+except (FileNotFoundError, KeyError):
     try:
-        model, device = load_model(fallback)
-    except FileNotFoundError:
+        model, device = load_model(ensure_checkpoint(FALLBACK_PATH))
+    except (FileNotFoundError, KeyError):
         st.error(
-            f"Checkpoint `{CHECKPOINT_PATH}` (or fallback `{fallback}`) not found. "
+            f"Checkpoint `{CHECKPOINT_PATH}` (or fallback `{FALLBACK_PATH}`) not found. "
             "Download it from Google Drive and place it in this folder."
         )
         st.stop()
