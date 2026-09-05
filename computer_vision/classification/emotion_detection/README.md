@@ -62,6 +62,8 @@ The model reads certain real photos of subtle, closed-mouth anger as HIGH neutra
 
 The remaining fix is personal data: fine-tuning on a small set of the user's own labeled photos (the failure was documented with open-image geometry, not speculation). See NOTES.md for the full reasoning.
 
+Note (loop closed): the root cause is likely broader than anger — an expression-intensity gap between benchmark datasets (which over-sample strong, mouth-open expressions) and the user's subtle personal photos. The same closed-mouth mechanism plausibly affects subtle disguise, surprise and other classes for personal photos, but we measured it only on anger (2-3 photos/emotion still missing); the fix direction is unchanged: personal-photo fine-tuning.
+
 ## Run the app
 
 ```
