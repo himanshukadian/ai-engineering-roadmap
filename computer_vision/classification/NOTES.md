@@ -66,3 +66,18 @@ Train the fake class on many generation methods so the model must learn *what ma
 Adding 5 diffusion generators to the fake class dropped in-distribution StyleGAN accuracy from 0.9940 to 0.8016. Retraining on new fakes reshapes the decision boundary toward broader "AI-ness", trading off the old generator's perfect score. This is expected and worth documenting: "99.4% then 99.9% then ..." numbers only hold when benchmark = training distribution. A detector's real quality is how it behaves on data it was never trained on (per-generator + real-world images).
 
 Real-world verdict after v2: the same Gemini image flipped REAL (99.5%) -> FAKE (90.7%).
+
+## Preprocessing: input contract + crop experiments (M7.5, streamlit app)
+
+The trained input contract is `Resize((224,224))` + ImageNet normalize. Changing the inference transform without retraining shifts the input distribution — measured on the Gemini image with the v2 checkpoint:
+
+| inference pipeline | fake prob | verdict |
+|---|---|---|
+| trained (Resize 224) | 0.9066 | FAKE |
+| aspect-preserving center crop (short edge -> 224, CenterCrop) | 0.9972 | FAKE |
+| MTCNN face-detect crop -> 224 | 0.0000 | REAL |
+
+- **Aspect center crop beats plain Resize** on a wide image (1408x768): `Resize((224,224))` squeezes the whole frame, downsampling the face region harder. Cropping the center keeps the face at higher effective resolution. No distortion -> closer to the face-domain training distribution.
+- **Tight face crops backfire**: v2's fake evidence partly lives in context around the face (hair, shoulders, framing, edges). MTCNN's tight crop removes that signal and can flip FAKE -> REAL. A "face-only" detector therefore needs *retraining on face crops*, not just an inference-side crop.
+- `antialias=True/False` had no effect on this image — few high-frequency details to alias at the scale involved.
+- The app exposes these as toggles (default = trained pipeline) plus an FFT spectrum diagnostic so the tradeoff is visible per image.
