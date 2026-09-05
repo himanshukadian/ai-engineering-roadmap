@@ -120,6 +120,7 @@ def verdict(a, threshold, ood=None):
 def run_inference(model, mode, file):
     img = Image.open(io.BytesIO(file.getvalue())).convert('RGB')
     temp = float(TEMPS.get(ckpt_name, {}).get('T', 1.0))
+    prior = core.PRIORS if prior_correct else None
 
     c1, c2 = st.columns(2)
     with c1:
@@ -133,7 +134,7 @@ def run_inference(model, mode, file):
         patch = core.preprocess_pil(img, mode if mode is not None else 'auto')
         st.image(patch, caption='Patch the model actually scored ({}x{})'.format(*patch.size), width=280)
 
-    a = core.analyze(img, model, model_modes, 'cpu', temp)
+    a = core.analyze(img, model, model_modes, 'cpu', temp, prior)
 
     centroids = None
     if not is_baseline:
@@ -174,6 +175,12 @@ def run_inference(model, mode, file):
 
     st.bar_chart(pd.Series(a['rows'][0]['probs'], index=core.CLS_NAMES))
     st.caption('Temperature {:.3f} (calibrated on FER+ val)'.format(temp))
+    if prior_correct:
+        st.caption(
+            'Prior-corrected: {:.0%} inside neutral/happiness, rare classes '
+            '(disgust/fear/contempt) boosted ~22x toward their true rate. '
+            'Only affects borderline decisions, not the angry-photo gap.'
+        ).format(core.PRIORS[0] + core.PRIORS[1])
     if ood is not None:
         st.caption('Nearest training-rep fit: {:.1%} ({}) -- outside the in-distribution floor'.format(ood[1], ood[0]))
 
@@ -191,6 +198,13 @@ with st.sidebar:
         mode = {'Auto (face detect)': 'auto', 'Aspect/zoom': 'aspect',
                 'Face-detect crop': 'face', 'Plain 224': 'plain'}[mode]
     threshold = st.slider('High-confidence threshold', 0.30, 0.95, 0.60, 0.05)
+    prior_correct = st.checkbox(
+        'Prior-correct probabilities (rebalance for rare classes)',
+        value=False,
+        help='softmax(logits/T - log prior) using the class priors implied by '
+             'the capped CE weights. Rare classes gain recall on borderline '
+             'inputs; does not fix the documented closed-mouth-anger gap.',
+    )
 
 model = get_model(kind, ckpt_name)
 

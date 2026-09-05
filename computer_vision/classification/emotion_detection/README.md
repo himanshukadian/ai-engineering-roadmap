@@ -2,6 +2,12 @@
 
 End-to-end FER+ emotion recognition: ResNet50 + CBAM attention, benchmarked across preprocessing variants, adapted to real photos on RAF-DB, exposed through our own Streamlit app.
 
+**Try it live: https://resnetemotiondetection.streamlit.app/**
+
+## Live app
+
+Deployed on Streamlit Community Cloud. The app auto-downloads the selected checkpoint from the `emotion-v1.0.0` GitHub release on first run (default `emotion_cbam_aspect.pt`, ~97 MB).
+
 ## Model checkpoints (in `checkpoints/`)
 
 | checkpoint | trained on | best for |

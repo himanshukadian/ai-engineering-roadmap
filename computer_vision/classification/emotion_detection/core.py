@@ -10,6 +10,17 @@ CLS_NAMES = [
     'anger', 'disgust', 'fear', 'contempt',
 ]
 
+# Implied class priors from the capped CE weights used in training:
+# rho_c ~ 1 / weight_c, normalized. Neutral/happiness are ~22x more frequent
+# in FER+ than disgust/fear/contempt. Post-hoc prior correction
+# (softmax(logits / T - log rho)) rebalances the decision boundary toward
+# rare classes without retraining.
+CE_WEIGHTS = [0.10, 0.11, 0.28, 0.32, 0.47, 2.24, 2.24, 2.24]
+PRIORS = [w for w in CE_WEIGHTS]
+_inv = [1.0 / w for w in CE_WEIGHTS]
+_sum = sum(_inv)
+PRIORS = [v / _sum for v in _inv]
+
 MEAN = [0.485, 0.456, 0.406]
 STD = [0.229, 0.224, 0.225]
 FINAL = 224
@@ -255,20 +266,24 @@ def ood_check(model, img, mode, centroids, thresholds, device='cpu'):
     return idx, float(sims[idx]), sims, ood
 
 
-def predict(model, img, mode, device='cpu', temp=1.0):
+def predict(model, img, mode, device='cpu', temp=1.0, prior=None):
     x = _to_input(preprocess_pil(img, mode))
     with torch.no_grad():
         logits = model(x.to(device)).cpu()[0]
         if temp != 1.0:
             logits = logits / temp
+        if prior is not None:
+            logits = logits - torch.log(
+                torch.tensor(prior, dtype=torch.float32)
+            )
         probs = torch.softmax(logits, dim=0).numpy()
     return probs, CLS_NAMES[int(probs.argmax())]
 
 
-def analyze(img, model, modes, device='cpu', temp=1.0):
+def analyze(img, model, modes, device='cpu', temp=1.0, prior=None):
     rows = []
     for mode in modes:
-        probs, top = predict(model, img, mode, device=device, temp=temp)
+        probs, top = predict(model, img, mode, device=device, temp=temp, prior=prior)
         rows.append({'mode': mode, 'probs': probs, 'top': top, 'conf': float(probs.max())})
     primary = rows[0]
     top1s = {r['top'] for r in rows}
