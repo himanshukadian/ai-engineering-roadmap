@@ -1,0 +1,8 @@
+{
+  "emotion_cbam_real.pt": {
+    "T": 1.7514,
+    "ece_before": 0.0668,
+    "ece_after": 0.0178,
+    "acc": 0.8657
+  }
+}
